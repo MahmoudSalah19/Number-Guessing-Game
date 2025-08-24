@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Guessing Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 1rem;
+            color: #444;
+        }
+        
+        .game-area {
+            margin: 25px 0;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            border-color: #6a11cb;
+            outline: none;
+        }
+        
+        button {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #message {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .attempts {
+            font-size: 1.1rem;
+            margin-top: 20px;
+            color: #555;
+        }
+        
+        .attempts span {
+            font-weight: bold;
+            color: #6a11cb;
+        }
+        
+        .difficulty {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .difficulty-btn {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .active-difficulty {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            box-shadow: 0 0 10px rgba(106, 17, 203, 0.5);
+        }
+        
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            button {
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guess the Number</h1>
+        
+        <div class="instructions">
+            <p>I'm thinking of a number between 1 and 100. Can you guess it?</p>
+            <p>Select a difficulty level to begin!</p>
+        </div>
+        
+        <div class="difficulty">
+            <button class="difficulty-btn active-difficulty" data-range="100">Easy (1-100)</button>
+            <button class="difficulty-btn" data-range="200">Medium (1-200)</button>
+            <button class="difficulty-btn" data-range="500">Hard (1-500)</button>
+        </div>
+        
+        <div class="game-area">
+            <input type="number" id="guess-input" placeholder="Enter your guess" min="1">
+            <button id="guess-btn">Submit Guess</button>
+            <button id="restart-btn">New Game</button>
+        </div>
+        
+        <div id="message" class="info">Select a difficulty and start guessing!</div>
+        
+        <div class="attempts">Attempts: <span id="attempts-count">0</span></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game variables
+            let targetNumber;
+            let attempts = 0;
+            let maxNumber = 100;
+            let gameActive = false;
+            
+            // DOM elements
+            const guessInput = document.getElementById('guess-input');
+            const guessBtn = document.getElementById('guess-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const message = document.getElementById('message');
+            const attemptsCount = document.getElementById('attempts-count');
+            const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+            
+            // Initialize game
+            initGame();
+            
+            // Event listeners
+            guessBtn.addEventListener('click', checkGuess);
+            restartBtn.addEventListener('click', initGame);
+            
+            // Allow pressing Enter to submit guess
+            guessInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkGuess();
+                }
+            });
+            
+            // Difficulty buttons
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (gameActive) {
+                        message.textContent = "Please finish the current game or restart before changing difficulty.";
+                        message.className = 'error';
+                        return;
+                    }
+                    
+                    difficultyBtns.forEach(b => b.classList.remove('active-difficulty'));
+                    btn.classList.add('active-difficulty');
+                    maxNumber = parseInt(btn.dataset.range);
+                    message.textContent = `Difficulty set to ${btn.textContent}. Click 'New Game' to start!`;
+                    message.className = 'info';
+                });
+            });
+            
+            // Initialize or reset the game
+            function initGame() {
+                targetNumber = Math.floor(Math.random() * maxNumber) + 1;
+                attempts = 0;
+                attemptsCount.textContent = attempts;
+                guessInput.value = '';
+                guessInput.disabled = false;
+                guessBtn.disabled = false;
+                message.textContent = `I'm thinking of a number between 1 and ${maxNumber}. Can you guess it?`;
+                message.className = 'info';
+                gameActive = true;
+                
+                // Log the target number for debugging (remove in production)
+                console.log(`Target number: ${targetNumber}`);
+            }
+            
+            // Check the user's guess
+            function checkGuess() {
+                if (!gameActive) return;
+                
+                const userGuess = parseInt(guessInput.value);
+                
+                // Validate input
+                if (isNaN(userGuess) || userGuess < 1 || userGuess > maxNumber) {
+                    message.textContent = `Please enter a valid number between 1 and ${maxNumber}.`;
+                    message.className = 'error';
+                    return;
+                }
+                
+                attempts++;
+                attemptsCount.textContent = attempts;
+                
+                // Check if guess is correct
+                if (userGuess === targetNumber) {
+                    message.textContent = `Congratulations! You guessed the number in ${attempts} attempts!`;
+                    message.className = 'success';
+                    endGame();
+                    return;
+                }
+                
+                // Provide hint
+                if (userGuess < targetNumber) {
+                    message.textContent = 'Too low! Try a higher number.';
+                    message.className = 'info';
+                } else {
+                    message.textContent = 'Too high! Try a lower number.';
+                    message.className = 'info';
+                }
+                
+                // Clear input and focus for next guess
+                guessInput.value = '';
+                guessInput.focus();
+            }
+            
+            // End the game
+            function endGame() {
+                gameActive = false;
+                guessInput.disabled = true;
+                guessBtn.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
