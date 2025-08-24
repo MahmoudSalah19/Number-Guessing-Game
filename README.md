@@ -65,7 +65,6 @@ Under "Source", select "main" branch (or "root" if placing HTML in root)
 
 Click Save
 
-Your game will be published at https://[your-username].github.io/[repository-name]
 
 📝 License
 This project is open source and available under the MIT License.
@@ -73,8 +72,6 @@ This project is open source and available under the MIT License.
 🤝 Contributing
 Contributions, issues, and feature requests are welcome! Feel free to check issues page.
 
-📞 Contact
-Your Name - @yourtwitter - email@example.com
 
 Project Link: https://github.com/your-username/number-guessing-game
 
